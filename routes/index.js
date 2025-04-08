@@ -363,11 +363,26 @@ exports.playGame = (req, res) => {
 };
 
 exports.recordResult = (req, res) => {
-  const { correct } = req.body;
+  const correct = parseInt(req.body.correct, 10) || 0;
+  const gid = req.params.id;
+  const uid = req.user.userid;
   db.run(
     `INSERT INTO results (user_id,game_id,correct_answers)
-          VALUES (?,?,?)`,
-    [req.user.userid, req.params.id, correct],
-    () => res.json({ status: "ok" })
+         VALUES (?,?,?)`,
+    [uid, gid, correct],
+    function (err) {
+      if (err) return res.json({ status: "error" });
+      /* fetch top‑5 leaderboard for this game */
+      db.all(
+        `SELECT user_id AS user,
+                  correct_answers AS score
+           FROM   results
+           WHERE  game_id = ?
+           ORDER  BY score DESC, result_time ASC
+           LIMIT  5`,
+        [gid],
+        (e, rows) => res.json({ status: "ok", leaderboard: rows })
+      );
+    }
   );
 };

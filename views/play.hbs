@@ -60,14 +60,25 @@ function judge(ok){
 }
 
 function finish(){
-  document.getElementById('quiz').innerHTML =
-    `<h2>Finished – ${correct}/${questions.length} correct.</h2>`;
+  const div = document.getElementById('quiz');
+  div.innerHTML = `<h2>Finished – ${correct}/${questions.length} correct.</h2>
+                  `;
+
   fetch('/play/{{gameId}}/result',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({correct})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+     if(data.status!=='ok') return;
+     /* render leaderboard */
+     const list = data.leaderboard
+       .map((r,i)=>`<li>${r.user} – ${r.score}</li>`)
+       .join('');
+     div.innerHTML += `<h3>Leaderboard (Top&nbsp;5)</h3><ol>${list}</ol>`;
   });
-}
+ }
 
 render();
 </script>
