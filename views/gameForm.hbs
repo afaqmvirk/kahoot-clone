@@ -80,16 +80,23 @@
         <option value="true"  {{#if (eq q.correct "true")}}selected{{/if}}>True</option>
         <option value="false" {{#if (eq q.correct "false")}}selected{{/if}}>False</option>
       </select>
+       <input type="hidden" name="option1" value="">
+  <input type="hidden" name="option2" value="">
+ <input type="hidden" name="option3" value="">
     </div>
 
     <div class="block-num">
       <input type="number" name="correct" value="{{q.correct}}"   placeholder="Correct number">
       <input type="number" name="option1" value="{{q.option1}}"  placeholder="Min">
       <input type="number" name="option2" value="{{q.option2}}"  placeholder="Max">
+      <input type="hidden" name="option3" value="">
     </div>
 
     <div class="block-type">
       <input name="correct" value="{{q.correct}}" placeholder="Correct answer">
+      <input type="hidden" name="option1" value="">
+      <input type="hidden" name="option2" value="">
+      <input type="hidden" name="option2" value="">
     </div>
 
     <div class="block-multi">
@@ -113,11 +120,32 @@ const decode = s => { const t=document.createElement('textarea'); t.innerHTML=s;
 /* ---------- adjust row visibility ---------- */
 function adjustRow(row){
   const t = row.querySelector('.q-type').value;
-  row.querySelector('.block-truefalse').style.display = (t==='truefalse')?'':'none';
-  row.querySelector('.block-num')      .style.display = (t==='num')?'':'none';
-  row.querySelector('.block-type')     .style.display = (t==='type')?'':'none';
-  row.querySelector('.block-multi')    .style.display = (t==='multiselect')?'':'none';
+
+  const blocks = {
+    truefalse : row.querySelector('.block-truefalse'),
+    num       : row.querySelector('.block-num'),
+    type      : row.querySelector('.block-type'),
+    multiselect:row.querySelector('.block-multi')
+  };
+
+  /* show / hide */
+  for (const [key, div] of Object.entries(blocks)){
+    const on = (key===t);
+    div.style.display = on ? '' : 'none';
+   /* NEW — enable only the active block */
+   div.querySelectorAll('input,select').forEach(el=>{
+    
+  if(on){
+    el.disabled = false;
+  }else{
+    el.disabled = false;
+    if(el.tagName === 'INPUT') el.value = '';           // clear stray data
+    if(el.tagName === 'SELECT') el.selectedIndex = 0;   // reset select
+  }
+   });
+  }
 }
+
 
 /* ---------- add / duplicate / delete ---------- */
 const container = document.getElementById('q-container');

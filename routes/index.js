@@ -128,7 +128,7 @@ exports.gameDetails = function (req, res) {
          FROM   games g
                 LEFT JOIN categories c ON c.id = g.category_id
          WHERE  g.gameid = ?`,
-    [id],
+    [gameId],
     (err, game) => {
       if (!game) return res.status(404).send("Game not found");
       db.all(
@@ -138,8 +138,8 @@ exports.gameDetails = function (req, res) {
         function (err, questions) {
           res.render("gameDetails", {
             title: game.title,
-            game,
-            questions: qs,
+            game: game,
+            questions: questions, // <─ pass questions array
             categoryName: game.categoryName || "—",
             playCount: game.playCount || 0,
             user: req.user,
