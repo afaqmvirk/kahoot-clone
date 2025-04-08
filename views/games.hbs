@@ -1,0 +1,35 @@
+{{> navbar user=user}}
+
+
+<html>
+  <head>
+    <title>{{title}}</title>
+  </head>
+  <body>
+    <h1>{{title}}</h1>
+
+    <ul>
+      {{#each games}}
+        <li>
+          <h3><a href="/game/{{gameid}}">{{title}}</a></h3>
+          <p>{{description}}</p>
+                {{#if ../user}}
+        {{#if (eq ../user.userid author_id)}}
+          <a href="/game/edit/{{gameid}}">Edit</a>
+          <form style="display:inline" method="post" action="/game/delete/{{gameid}}">
+            <button type="submit" onclick="return confirm('Delete this game?')">Delete</button>
+         </form>
+        {{/if}}
+      {{/if}}
+        </li>
+      {{/each}}
+    </ul>
+
+    {{#if user}}
+      <p>Logged in as: {{user.userid}} ({{user.role}})</p>
+      {{#if (eq user.role "admin")}}
+        <p><a href="/admin">Admin panel</a></p>
+      {{/if}}
+    {{/if}}
+  </body>
+</html>

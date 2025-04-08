@@ -1,0 +1,17 @@
+{{> navbar user=user}}
+
+<h1>Log in</h1>
+<form method="post" action="/login">
+  <input name="userid"  placeholder="User ID" required>
+  <input name="password" type="password" placeholder="Password" required>
+  <button type="submit">Log&nbsp;in</button>
+</form>
+
+<hr>
+
+<h1>Sign up</h1>
+<form method="post" action="/signup">
+  <input name="userid"  placeholder="Choose a User ID" required>
+  <input name="password" type="password" placeholder="Choose a Password" required>
+  <button type="submit">Create&nbsp;account</button>
+</form>

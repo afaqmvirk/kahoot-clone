@@ -1,0 +1,17 @@
+<nav style="padding:0.5em 1em; background:#eee; margin-bottom:1em">
+  <a href="/games"><strong>Trivia‑Hub</strong></a>
+
+  <span style="float:right">
+    {{#if user}}
+      Hello&nbsp;<strong>{{user.userid}}</strong>
+      <a href="/game/new">Create&nbsp;Game</a>
+      {{#if (eq user.role "admin")}} | <a href="/admin">Admin</a>{{/if}}
+      |
+      <a href="/logout">Log&nbsp;out</a>
+    {{else}}
+      <a href="/auth">Log&nbsp;in</a>
+      /
+      <a href="/auth">Sign&nbsp;up</a>
+    {{/if}}
+  </span>
+</nav>

@@ -1,0 +1,38 @@
+{{> navbar user=user}}
+
+
+<html>
+  <head>
+    <title>{{game.title}}</title>
+  </head>
+  <body>
+    <h1>{{game.title}}</h1>
+    <p>{{game.description}}</p>
+    <hr />
+
+    {{#each questions}}
+      <div style="margin-bottom:1.5em">
+        <strong>Q{{@index}}. {{question}}</strong><br />
+
+        {{#if (eq type "truefalse")}}
+          • True &nbsp; • False
+        {{else if (eq type "num")}}
+          •
+          <em>numeric answer</em>
+        {{else if (eq type "type")}}
+          •
+          <em>free‑text answer</em>
+        {{else}}
+          <!-- multiselect -->
+          <ul>
+            {{#if option1}}<li>{{option1}}</li>{{/if}}
+            {{#if option2}}<li>{{option2}}</li>{{/if}}
+            {{#if option3}}<li>{{option3}}</li>{{/if}}
+          </ul>
+        {{/if}}
+      </div>
+    {{/each}}
+
+    <p><a href="/games">⬅ back to games</a></p>
+  </body>
+</html>

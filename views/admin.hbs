@@ -1,0 +1,37 @@
+{{> navbar user=user}}
+
+
+<html>
+  <head>
+    <title>{{title}}</title>
+  </head>
+  <body>
+    
+    <h1>{{title}}</h1>
+
+    <h2>Users</h2>
+    <table border="1" cellpadding="4">
+      <tr><th>UserID</th><th>Role</th></tr>
+      {{#each users}}
+        <tr><td>{{userid}}</td><td>{{role}}</td></tr>
+      {{/each}}
+    </table>
+
+    <h2 style="margin-top:2em">Results</h2>
+    <table border="1" cellpadding="4">
+      <tr>
+        <th>When</th><th>Player</th><th>Game</th><th># Correct</th>
+      </tr>
+      {{#each results}}
+        <tr>
+          <td>{{result_time}}</td>
+          <td>{{player}}</td>
+          <td>{{game}}</td>
+          <td>{{correct_answers}}</td>
+        </tr>
+      {{/each}}
+    </table>
+
+    <p><a href="/games">⬅ back to games</a></p>
+  </body>
+</html>
