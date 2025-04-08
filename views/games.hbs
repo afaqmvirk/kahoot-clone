@@ -13,6 +13,7 @@
         <li>
           <h3><a href="/game/{{gameid}}">{{title}}</a></h3>
           <p>{{description}}</p>
+          <a href="/play/{{gameid}}" target="_blank">Play</a>
                 {{#if ../user}}
         {{#if (eq ../user.userid author_id)}}
           <a href="/game/edit/{{gameid}}">Edit</a>

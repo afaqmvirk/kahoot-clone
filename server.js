@@ -17,10 +17,12 @@ app.set("view engine", "hbs"); //use hbs handlebars wrapper
 //handlebars helpers and partials
 hbs.registerPartials(path.join(__dirname, "views", "partials"));
 hbs.registerHelper("eq", (a, b) => a === b);
+hbs.registerHelper("json", (ctx) => JSON.stringify(ctx));
 
 app.locals.pretty = true; //to generate pretty view-source code in browser
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(
   session({
     secret: "trivia-secret",
@@ -79,6 +81,9 @@ app.post("/game/save", routes.requireLogin, routes.saveGame);
 app.get("/game/edit/:id", routes.requireLogin, routes.editGameForm);
 app.post("/game/update/:id", routes.requireLogin, routes.updateGame);
 app.post("/game/delete/:id", routes.requireLogin, routes.deleteGame);
+
+app.get("/play/:id", routes.requireLogin, routes.playGame);
+app.post("/play/:id/result", routes.requireLogin, routes.recordResult);
 
 //start server
 app.listen(PORT, (err) => {

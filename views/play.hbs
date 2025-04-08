@@ -1,0 +1,73 @@
+{{> navbar user=user}}
+
+<h1>{{title}}</h1>
+<div id="quiz" style="margin-top:1em"></div>
+
+<script>
+const questions = {{{json questions}}};
+let   idx       = 0;
+let   correct   = 0;
+
+/* ----------  helpers  ---------- */
+const shuffle = a => a.sort(()=>Math.random()-0.5);
+const decode  = s => { const t=document.createElement('textarea'); t.innerHTML=s; return t.value; };
+
+function render(){
+  if(idx >= questions.length){ return finish(); }
+
+  const q  = questions[idx];
+  const div= document.getElementById('quiz');
+  div.innerHTML = '';                         // clear
+
+  const h2 = document.createElement('h2');
+  h2.textContent = `Q${idx+1}. ${decode(q.question)}`;
+  div.appendChild(h2);
+
+  if(q.type==='truefalse'){
+    ['True','False'].forEach(ans => mkBtn(ans, ans.toLowerCase()===q.correct));
+  }else if(q.type==='multiselect'){
+    const opts = shuffle([q.correct, q.option1, q.option2, q.option3].filter(Boolean).map(decode));
+    opts.forEach(ans => mkBtn(ans, ans===decode(q.correct)));
+  }else if(q.type==='num'){
+    mkInput('number', (val)=>{
+      const num = parseFloat(val);
+      const min = parseFloat(q.option1);
+      const max = parseFloat(q.option2);
+      return (!isNaN(min)||!isNaN(max)) ? (num>=min && num<=max) : (num==parseFloat(q.correct));
+    });
+  }else{ /* type */
+    mkInput('text', val => val.trim().toLowerCase() === decode(q.correct).toLowerCase());
+  }
+
+  /* ----------  factory helpers ---------- */
+  function mkBtn(label,isCorrect){
+    const b=document.createElement('button'); b.textContent=label;
+    b.onclick=()=>judge(isCorrect);
+    div.appendChild(b);
+  }
+  function mkInput(htmlType, judgeFn){
+    const inp=document.createElement('input'); inp.type=htmlType;
+    const b=document.createElement('button');  b.textContent='Submit';
+    b.onclick=()=>judge(judgeFn(inp.value));
+    div.appendChild(inp); div.appendChild(b);
+  }
+}
+
+function judge(ok){
+  alert(ok?'Correct!':'Incorrect.');
+  if(ok) correct++;
+  idx++; render();
+}
+
+function finish(){
+  document.getElementById('quiz').innerHTML =
+    `<h2>Finished – ${correct}/${questions.length} correct.</h2>`;
+  fetch('/play/{{gameId}}/result',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({correct})
+  });
+}
+
+render();
+</script>

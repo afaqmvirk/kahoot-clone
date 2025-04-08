@@ -346,3 +346,28 @@ exports.deleteGame = (req, res) => {
     }
   );
 };
+
+exports.playGame = (req, res) => {
+  const id = req.params.id;
+  db.get("SELECT title FROM games WHERE gameid = ?", [id], (e, game) => {
+    if (!game) return res.sendStatus(404);
+    db.all("SELECT * FROM questions WHERE game_id = ?", [id], (e, qs) => {
+      res.render("play", {
+        title: `Play – ${game.title}`,
+        gameId: id,
+        questions: qs, // sent to client as JSON
+        user: req.user,
+      });
+    });
+  });
+};
+
+exports.recordResult = (req, res) => {
+  const { correct } = req.body;
+  db.run(
+    `INSERT INTO results (user_id,game_id,correct_answers)
+          VALUES (?,?,?)`,
+    [req.user.userid, req.params.id, correct],
+    () => res.json({ status: "ok" })
+  );
+};

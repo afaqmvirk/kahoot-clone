@@ -32,14 +32,13 @@
 </form>
 
 <script>
-/* ----------  utilities  ---------- */
 const decode = s => { const t=document.createElement('textarea'); t.innerHTML=s; return t.value; };
 function adjustRow(row){
-  const type = row.querySelector('.q-type').value;
-  row.querySelector('.block-truefalse').style.display = (type==='truefalse')?'':'none';
-  row.querySelector('.block-num')      .style.display = (type==='num')?'':'none';
-  row.querySelector('.block-type')     .style.display = (type==='type')?'':'none';
-  row.querySelector('.block-multi')    .style.display = (type==='multiselect')?'':'none';
+  const t = row.querySelector('.q-type').value;
+  row.querySelector('.block-truefalse').style.display = (t==='truefalse')?'':'none';
+  row.querySelector('.block-num')      .style.display = (t==='num')?'':'none';
+  row.querySelector('.block-type')     .style.display = (t==='type')?'':'none';
+  row.querySelector('.block-multi')    .style.display = (t==='multiselect')?'':'none';
 }
 
 function template(){
@@ -109,63 +108,67 @@ document.getElementById('q-container').addEventListener('change', e=>{
   if(e.target.classList.contains('q-type')) adjustRow(e.target.closest('.q-row'));
 });
 
-/* ----------  OpenTDB caching & throttle  ---------- */
-const questionCache = {};           // key -> array of questions
-let  lastFetch = 0;                 // throttle timer (ms)
+/* ───────── auto‑generate with single request + 7‑s cool‑down ───────── */
+let lastFetchTime = 0;                 // ms since epoch of last real request
 
-async function fetchBatch(cat, apiType){
-  /* 3‑second throttle for actual HTTP calls */
-  const now = Date.now();
-  if(now - lastFetch < 3000) await new Promise(r=>setTimeout(r, 3000 - (now-lastFetch)));
-  lastFetch = Date.now();
+async function fetchQuestion(row){
+  /* record moment of *actual* fetch for cool‑down */
+  lastFetchTime = Date.now();
 
-  let url = `https://opentdb.com/api.php?amount=50&type=${apiType}`;
+  const typeSel = row.querySelector('.q-type').value;     // truefalse | multiselect
+  const apiType = (typeSel==='truefalse') ? 'boolean' : 'multiple';
+  const cat     = document.querySelector('select[name="category_id"]').value;
+  let url = `https://opentdb.com/api.php?amount=1&type=${apiType}`;
   if(cat) url += `&category=${cat}`;
-  const data = await fetch(url).then(r=>r.json()).catch(()=>({results:[]}));
-  return data.results || [];
+
+  try{
+    const data = await fetch(url).then(r=>r.json());
+    if(!data.results || !data.results.length) return;
+    const q = data.results[0];
+
+    row.querySelector('input[name="question[]"]').value = decode(q.question);
+
+    if(typeSel==='truefalse'){
+      const sel = row.querySelector('.block-truefalse select[name="correct[]"]');
+      sel.value = q.correct_answer.toLowerCase();          // "True"/"False"
+    }else{ /* multiselect ------------------------------------------------ */
+      const blk = row.querySelector('.block-multi');
+      const correct   = decode(q.correct_answer);
+      const incorrect = q.incorrect_answers.map(decode);   // three wrong answers
+
+      blk.querySelector('input[name="correct[]"]').value = correct;
+      blk.querySelector('input[name="option1[]"]').value  = incorrect[0] || '';
+      blk.querySelector('input[name="option2[]"]').value  = incorrect[1] || '';
+      blk.querySelector('input[name="option3[]"]').value  = incorrect[2] || '';
+    }
+  }catch(e){ console.error(e); }
 }
 
-async function getNextQuestion(type, cat){
-  const apiType = (type==='truefalse')?'boolean':'multiple';
-  const key = `${cat||'any'}-${apiType}`;
+function autoGenerate(row, btn){
+  if(btn.disabled) return;            // ignore rapid double‑clicks
 
-  if(!questionCache[key] || questionCache[key].length === 0){
-    questionCache[key] = await fetchBatch(cat, apiType);
-  }
-  return questionCache[key].shift();     // may be undefined if API failed
+  const now   = Date.now();
+  const wait  = Math.max(0, 7000 - (now - lastFetchTime));   // 7‑s cool‑down
+
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Loading…';
+
+  setTimeout(async ()=>{
+    await fetchQuestion(row);         // single API call
+    btn.disabled = false;
+    btn.textContent = original;
+  }, wait);
 }
 
-/* ----------  auto‑generate ---------- */
-async function autoGenerate(row){
-  const type = row.querySelector('.q-type').value;
-  const cat  = document.querySelector('select[name="category_id"]').value;
-
-  const q = await getNextQuestion(type, cat);
-  if(!q) return;                         // nothing available
-
-  row.querySelector('input[name="question[]"]').value = decode(q.question);
-
-  if(type==='truefalse'){
-    const sel = row.querySelector('.block-truefalse select[name="correct[]"]');
-    sel.value = q.correct_answer.toLowerCase();        // "True"/"False"
-  }else{ /* multiselect -------------------------------------------------- */
-    const blk = row.querySelector('.block-multi');
-    const incorrect = q.incorrect_answers.map(decode); // 3 wrong answers
-    blk.querySelector('input[name="correct[]"]').value = decode(q.correct_answer);
-    blk.querySelector('input[name="option1[]"]').value = incorrect[0] || '';
-    blk.querySelector('input[name="option2[]"]').value = incorrect[1] || '';
-    blk.querySelector('input[name="option3[]"]').value = incorrect[2] || '';
-  }
-}
-
-/* button handler */
+/* click handler */
 document.getElementById('q-container').addEventListener('click', e=>{
   if(e.target.classList.contains('autoQ')){
-    autoGenerate(e.target.closest('.q-row'));
+    autoGenerate(e.target.closest('.q-row'), e.target);
   }
 });
 
-/* run adjustRow() once for rows rendered during edit */
+/* adjust pre‑rendered rows (edit mode) */
 document.querySelectorAll('.q-row').forEach(adjustRow);
 </script>
 
