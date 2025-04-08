@@ -123,9 +123,13 @@ exports.gamesOverview = function (req, res) {
 exports.gameDetails = function (req, res) {
   const gameId = req.params.id;
   db.get(
-    "SELECT gameid, title, description FROM games WHERE gameid = ?",
-    [gameId],
-    function (err, game) {
+    `SELECT g.*, c.name AS categoryName,
+                (SELECT COUNT(*) FROM results WHERE game_id=g.gameid) AS playCount
+         FROM   games g
+                LEFT JOIN categories c ON c.id = g.category_id
+         WHERE  g.gameid = ?`,
+    [id],
+    (err, game) => {
       if (!game) return res.status(404).send("Game not found");
       db.all(
         `SELECT questionid, type, question, correct, option1, option2, option3
@@ -134,8 +138,10 @@ exports.gameDetails = function (req, res) {
         function (err, questions) {
           res.render("gameDetails", {
             title: game.title,
-            game: game,
-            questions: questions,
+            game,
+            questions: qs,
+            categoryName: game.categoryName || "—",
+            playCount: game.playCount || 0,
             user: req.user,
           });
         }
@@ -229,14 +235,17 @@ exports.newGameForm = (req, res) => {
   });
 };
 
+const toArray = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+
 exports.saveGame = (req, res) => {
   const { title, description, category_id } = req.body;
-  const qText = req.body.question || [];
-  const qType = req.body.type || [];
-  const qCorrect = req.body.correct || [];
-  const qOpt1 = req.body.option1 || [];
-  const qOpt2 = req.body.option2 || [];
-  const qOpt3 = req.body.option3 || [];
+
+  const qText = toArray(req.body.question);
+  const qType = toArray(req.body.type);
+  const qCorrect = toArray(req.body.correct);
+  const qOpt1 = toArray(req.body.option1);
+  const qOpt2 = toArray(req.body.option2);
+  const qOpt3 = toArray(req.body.option3);
 
   db.run(
     `INSERT INTO games (title,description,category_id,author_id)
@@ -251,15 +260,15 @@ exports.saveGame = (req, res) => {
            VALUES (?,?,?,?,?,?,?)`
       );
       for (let i = 0; i < qText.length; i++) {
-        if (!qText[i]) continue; // skip blank
+        console.log("added question");
         stmt.run(
           gameId,
-          qType[i],
+          qType[i] || "",
           qText[i],
-          qCorrect[i],
-          qOpt1[i],
-          qOpt2[i],
-          qOpt3[i]
+          qCorrect[i] || "",
+          qOpt1[i] || null,
+          qOpt2[i] || null,
+          qOpt3[i] || null
         );
       }
       stmt.finalize(() => res.redirect("/games"));
@@ -305,27 +314,27 @@ exports.updateGame = (req, res) => {
           if (err) return res.sendStatus(500);
           /* replace questions: simplest path */
           db.run("DELETE FROM questions WHERE game_id = ?", [gameId], () => {
-            const qText = req.body.question || [];
-            const qType = req.body.type || [];
-            const qCorrect = req.body.correct || [];
-            const qOpt1 = req.body.option1 || [];
-            const qOpt2 = req.body.option2 || [];
-            const qOpt3 = req.body.option3 || [];
+            const qText = toArray(req.body.question);
+            const qType = toArray(req.body.type);
+            const qCorrect = toArray(req.body.correct);
+            const qOpt1 = toArray(req.body.option1);
+            const qOpt2 = toArray(req.body.option2);
+            const qOpt3 = toArray(req.body.option3);
             const stmt = db.prepare(
               `INSERT INTO questions
                (game_id,type,question,correct,option1,option2,option3)
                VALUES (?,?,?,?,?,?,?)`
             );
             for (let i = 0; i < qText.length; i++) {
-              if (!qText[i]) continue;
+              console.log("added question");
               stmt.run(
                 gameId,
-                qType[i],
+                qType[i] || "",
                 qText[i],
-                qCorrect[i],
-                qOpt1[i],
-                qOpt2[i],
-                qOpt3[i]
+                qCorrect[i] || "",
+                qOpt1[i] || null,
+                qOpt2[i] || null,
+                qOpt3[i] || null
               );
             }
             stmt.finalize(() => res.redirect("/games"));
@@ -389,6 +398,41 @@ exports.recordResult = (req, res) => {
         [gid],
         (e, rows) => res.json({ status: "ok", leaderboard: rows })
       );
+    }
+  );
+};
+
+/* ----------  Search endpoints ---------- */
+exports.apiSearch = (req, res) => {
+  const term = `%${(req.query.title || req.query.q || "").replace(
+    /\s+/g,
+    "%"
+  )}%`;
+  db.all(
+    `SELECT gameid, title FROM games
+            WHERE title LIKE ? COLLATE NOCASE
+            ORDER BY title LIMIT 5`,
+    [term],
+    (e, rows) => res.json(rows)
+  );
+};
+
+exports.searchGames = (req, res) => {
+  const term = `%${(req.query.title || "").replace(/\s+/g, "%")}%`;
+  db.all(
+    `SELECT g.*, 
+                   (SELECT COUNT(*) FROM questions WHERE game_id=g.gameid) AS questionCount,
+                   (SELECT COUNT(*) FROM results   WHERE game_id=g.gameid) AS playCount
+            FROM   games g
+            WHERE  g.title LIKE ? COLLATE NOCASE
+            ORDER  BY g.title`,
+    [term],
+    (e, rows) => {
+      res.render("games", {
+        title: `Search – ${req.query.title || ""}`,
+        games: rows,
+        user: req.user,
+      });
     }
   );
 };

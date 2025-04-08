@@ -5,11 +5,20 @@
 </head>
 
 <nav>
-  <div style="display:flex;align-items:center;gap:.8rem">
-    <a href="/games"><img src="/logo.png" alt="logo" style="height:36px" /></a>
-    <a href="/games">Home</a>
-    {{#if user}}<a href="/game/new">Create</a>{{/if}}
+  <div style="display:flex;align-items:center;gap:1rem">
+    <a href="/games"><img src="/logo.png" alt="logo" style="height:34px"></a>
+    <a href="/game/new" {{#unless user}}style="display:none"{{/unless}}>Create</a>
   </div>
+
+<!-- SEARCH BAR -->
+<div style="position:relative;flex:1;display:flex;justify-content:center">
+  <input id="searchInput"
+         placeholder="Search quizzes…"
+         autocomplete="off"
+         style="max-width:320px;width:100%">
+  <div id="acBox" class="autocomplete-box" style="display:none"></div>
+</div>
+
 
   <div style="display:flex;align-items:center;gap:1rem">
     {{#if user}}
@@ -17,8 +26,43 @@
       {{#if (eq user.role "admin")}}<a href="/admin">Admin</a>{{/if}}
       <a href="/logout" style="text-decoration:underline">Log&nbsp;out</a>
     {{else}}
-      <a href="/auth"><button class="primary">Log&nbsp;in</button></a>
-      <a href="/auth"><button class="neutral">Sign&nbsp;up</button></a>
+      <a href="/auth"><button class="btn primary">Log&nbsp;in</button></a>
+      <a href="/auth"><button class="btn secondary">Sign&nbsp;up</button></a>
     {{/if}}
   </div>
 </nav>
+
+<script>
+const inp  = document.getElementById('searchInput');
+const box  = document.getElementById('acBox');
+let   tId;
+
+inp.addEventListener('input', ()=>{
+  clearTimeout(tId);
+  const q = inp.value.trim();
+  if(!q){ box.style.display='none'; return; }
+  tId=setTimeout(async ()=>{
+    const res = await fetch('/api/search?title='+encodeURIComponent(q)).then(r=>r.json());
+    if(!res.length){ box.style.display='none'; return; }
+    box.innerHTML = res.map(o=>`<div data-id="${o.gameid}">${o.title}</div>`).join('');
+    box.style.display='block';
+  },250);
+});
+
+box.addEventListener('click',e=>{
+  if(e.target.dataset.id){
+    window.location='/game/'+e.target.dataset.id;
+  }
+});
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#searchInput')) box.style.display='none';
+});
+
+inp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    window.location='/search?title='+encodeURIComponent(inp.value.trim());
+  }
+});
+</script>

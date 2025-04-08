@@ -31,6 +31,18 @@ hbs.registerHelper("catIcon", (id) => {
   };
   return map[id] || "❔";
 });
+hbs.registerHelper("inc", (n) => n + 1);
+hbs.registerHelper("capitalize", (s) => s.charAt(0).toUpperCase() + s.slice(1));
+hbs.registerHelper(
+  "typeLabel",
+  (t) =>
+    ({
+      truefalse: "True/False",
+      num: "Number",
+      multiselect: "Multi‑select",
+      type: "Text",
+    }[t] || t)
+);
 
 app.locals.pretty = true; //to generate pretty view-source code in browser
 
@@ -84,6 +96,10 @@ app.get("/auth", routes.authPage);
 app.post("/login", routes.login);
 app.post("/signup", routes.signup);
 app.get("/logout", routes.logout);
+
+/* ----------  search / autocomplete  ---------- */
+app.get("/api/search", routes.apiSearch); // returns JSON
+app.get("/search", routes.searchGames); // full results page
 
 app.get("/admin", routes.adminPanel); // admin‑only page
 

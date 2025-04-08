@@ -1,38 +1,116 @@
-{{> navbar user=user}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
 
-<h1>{{#if isEdit}}Edit Game{{else}}Create Game{{/if}}</h1>
-<div class="container card">
-<form method="post" action="{{#if isEdit}}/game/update/{{game.gameid}}{{else}}/game/save{{/if}}" autocomplete="off">
-  <label>Title</label><br>
-  <input name="title" value="{{game.title}}" required><br><br>
+<body>
+  {{> navbar user=user}}
+      <form id="quizForm"
+            method="post"
+            action="{{#if isEdit}}/game/update/{{game.gameid}}{{else}}/game/save{{/if}}"
+            autocomplete="off">
+  <div class="container creator-wrap">
+    <!-- ───── SIDEBAR ───── -->
+    <div class="creator-side card">
 
-  <label>Description</label><br>
-  <textarea name="description" rows="3" cols="50">{{game.description}}</textarea><br><br>
 
-  <label>Category</label><br>
-  <select name="category_id" required>
-    {{#each categories}}
-      <option value="{{id}}" {{#if (eq ../game.category_id id)}}selected{{/if}}>{{name}}</option>
-    {{/each}}
-  </select><br><br>
+        <label>Title</label>
+        <input name="title" value="{{game.title}}" required>
 
-  <h3>Questions</h3>
-  <div id="q-container">
-    {{#if questions.length}}
-      {{#each questions}}
-        {{> questionRow idx=@index q=this}}
-      {{/each}}
-    {{/if}}
+        <label>Description</label>
+        <textarea name="description" rows="6">{{game.description}}</textarea>
+
+        <label>Category</label>
+        <select name="category_id" required>
+          {{#each categories}}
+            <option value="{{id}}" {{#if (eq ../game.category_id id)}}selected{{/if}}>
+              {{name}}
+            </option>
+          {{/each}}
+        </select>
+
+        <button class="btn primary" type="submit" style="width:100%;margin-top:1rem">
+          Save&nbsp;Game
+        </button>
+    </div>
+
+    <!-- ───── QUESTIONS AREA ───── -->
+    <div class="creator-questions">
+      <h2>Questions (<span id="qCount">{{questions.length}}</span>)</h2>
+
+      <div id="q-container">
+        {{#each questions}}
+          {{> questionRow idx=@index q=this}}
+        {{/each}}
+      </div>
+
+      <div class="add-bar" id="addQ">+ add a new question</div>
+    </div>
   </div>
+        </form>
 
-  <button type="button" id="addQ">＋ Add Question</button>
-  <br><br>
 
-  <button class="primary" type="submit">Save Game</button>
-</form>
-</div>
+  <!-- ───── PARTIALS ───── -->
+  {{#*inline "questionRow"}}
+  <div class="q-row">
+    <div class="q-header">
+      <h3>Q{{inc idx}}</h3>
+
+      <select name="type" class="q-type">
+        <option value="truefalse"  {{#if (eq q.type "truefalse")}}selected{{/if}}>True/False</option>
+        <option value="num"        {{#if (eq q.type "num")}}selected{{/if}}>Number</option>
+        <option value="multiselect"{{#if (eq q.type "multiselect")}}selected{{/if}}>Multi‑select</option>
+        <option value="type"       {{#if (eq q.type "type")}}selected{{/if}}>Text</option>
+      </select>
+
+      <button type="button" class="btn secondary dupQ">Duplicate</button>
+      <button type="button" class="btn danger delQ">Delete</button>
+      <button type="button" class="btn primary autoQ">Generate</button>
+    </div>
+
+    <!-- body -->
+    <input name="question" value="{{q.question}}" placeholder="Question" required>
+
+    <div class="block-truefalse">
+      <select name="correct">
+        <option value="true"  {{#if (eq q.correct "true")}}selected{{/if}}>True</option>
+        <option value="false" {{#if (eq q.correct "false")}}selected{{/if}}>False</option>
+      </select>
+    </div>
+
+    <div class="block-num">
+      <input type="number" name="correct" value="{{q.correct}}"   placeholder="Correct number">
+      <input type="number" name="option1" value="{{q.option1}}"  placeholder="Min">
+      <input type="number" name="option2" value="{{q.option2}}"  placeholder="Max">
+    </div>
+
+    <div class="block-type">
+      <input name="correct" value="{{q.correct}}" placeholder="Correct answer">
+    </div>
+
+    <div class="block-multi">
+      <input name="correct" value="{{q.correct}}"  placeholder="Correct answer">
+      <input name="option1" value="{{q.option1}}"  placeholder="Option 1">
+      <input name="option2" value="{{q.option2}}"  placeholder="Option 2">
+      <input name="option3" value="{{q.option3}}"  placeholder="Option 3">
+    </div>
+  </div>
+  {{/inline}}
+
+  <!-- ───── BLANK ROW TEMPLATE (hidden) ───── -->
+  <template id="blankRow">
+    {{> questionRow idx=0 q=(object) }}
+  </template>
+
 <script>
+/* ---------- helper ---------- */
 const decode = s => { const t=document.createElement('textarea'); t.innerHTML=s; return t.value; };
+
+/* ---------- adjust row visibility ---------- */
 function adjustRow(row){
   const t = row.querySelector('.q-type').value;
   row.querySelector('.block-truefalse').style.display = (t==='truefalse')?'':'none';
@@ -41,81 +119,49 @@ function adjustRow(row){
   row.querySelector('.block-multi')    .style.display = (t==='multiselect')?'':'none';
 }
 
-function template(){
-  return `
-  <div class="q-row" style="border:1px solid #ccc; padding:8px; margin-bottom:8px">
-    <label>Question</label><br>
-    <input name="question[]" required autocomplete="off"><br>
-
-    <label>Type</label>
-    <select name="type[]" class="q-type">
-      <option value="truefalse">truefalse</option>
-      <option value="num">num</option>
-      <option value="multiselect">multiselect</option>
-      <option value="type">type</option>
-    </select><br>
-
-    <div class="block-truefalse">
-      <label>Answer</label>
-      <select name="correct[]" autocomplete="off">
-        <option value="true">True</option>
-        <option value="false">False</option>
-      </select>
-    <button type="button" class="autoQ">Auto‑generate</button>
-
-    </div>
-
-    <div class="block-num" style="display:none">
-      <label>Correct&nbsp;Number</label><br>
-      <input type="number" name="correct[]" autocomplete="off"><br>
-      <label>Min</label><br>
-      <input type="number" name="option1[]" autocomplete="off"><br>
-      <label>Max</label><br>
-      <input type="number" name="option2[]" autocomplete="off"><br>
-    </div>
-
-    <div class="block-type" style="display:none">
-      <label>Correct&nbsp;Answer</label><br>
-      <input name="correct[]" autocomplete="off">
-    </div>
-
-    <div class="block-multi" style="display:none">
-      <label>Correct Answer</label><br>
-      <input name="correct[]" autocomplete="off"><br>
-      <label>Option&nbsp;1</label><br>
-      <input name="option1[]" autocomplete="off"><br>
-      <label>Option&nbsp;2</label><br>
-      <input name="option2[]" autocomplete="off"><br>
-      <label>Option&nbsp;3</label><br>
-      <input name="option3[]" autocomplete="off"><br>
-      <button type="button" class="autoQ">Auto‑generate</button>
-    </div>
-
-    <button type="button" class="delQ">Delete</button>
-  </div>`;
+/* ---------- add / duplicate / delete ---------- */
+const container = document.getElementById('q-container');
+function updateCount(){
+  document.getElementById('qCount').textContent = container.children.length;
+  [...container.children].forEach((r,i)=> r.querySelector('h3').textContent = 'Q'+(i+1));
 }
-document.getElementById('addQ').onclick = () =>{
-  const c = document.getElementById('q-container');
-  c.insertAdjacentHTML('beforeend', template());
-  adjustRow(c.lastElementChild);
+
+document.getElementById('addQ').onclick = ()=>{
+  const tpl = document.getElementById('blankRow').content.cloneNode(true);
+  container.appendChild(tpl);
+  adjustRow(container.lastElementChild);
+  updateCount();
 };
-document.getElementById('q-container').addEventListener('click', e=>{
+
+container.addEventListener('click', e=>{
+  const row = e.target.closest('.q-row');
+  if(!row) return;
+
   if(e.target.classList.contains('delQ')){
-    e.target.closest('.q-row').remove();
+    row.remove(); updateCount(); return;
+  }
+  if(e.target.classList.contains('dupQ')){
+    const clone = row.cloneNode(true);
+    row.after(clone); updateCount(); return;
+  }
+  if(e.target.classList.contains('autoQ')){
+    autoGenerate(row, e.target);
   }
 });
-document.getElementById('q-container').addEventListener('change', e=>{
-  if(e.target.classList.contains('q-type')) adjustRow(e.target.closest('.q-row'));
+
+container.addEventListener('change', e=>{
+  if(e.target.classList.contains('q-type')){
+    adjustRow(e.target.closest('.q-row'));
+  }
 });
 
-/* ───────── auto‑generate with single request + 7‑s cool‑down ───────── */
-let lastFetchTime = 0;                 // ms since epoch of last real request
+/* ---------- AUTO‑GENERATE LOGIC (single fetch, 7‑s cool‑down) ---------- */
+let lastFetchTime = 0;        // ms
 
 async function fetchQuestion(row){
-  /* record moment of *actual* fetch for cool‑down */
   lastFetchTime = Date.now();
 
-  const typeSel = row.querySelector('.q-type').value;     // truefalse | multiselect
+  const typeSel = row.querySelector('.q-type').value;
   const apiType = (typeSel==='truefalse') ? 'boolean' : 'multiple';
   const cat     = document.querySelector('select[name="category_id"]').value;
   let url = `https://opentdb.com/api.php?amount=1&type=${apiType}`;
@@ -126,103 +172,41 @@ async function fetchQuestion(row){
     if(!data.results || !data.results.length) return;
     const q = data.results[0];
 
-    row.querySelector('input[name="question[]"]').value = decode(q.question);
+    row.querySelector('input[name="question"]').value = decode(q.question);
 
     if(typeSel==='truefalse'){
-      const sel = row.querySelector('.block-truefalse select[name="correct[]"]');
-      sel.value = q.correct_answer.toLowerCase();          // "True"/"False"
-    }else{ /* multiselect ------------------------------------------------ */
+      row.querySelector('.block-truefalse select[name="correct"]')
+         .value = q.correct_answer.toLowerCase();
+    }else{ /* multiselect */
       const blk = row.querySelector('.block-multi');
       const correct   = decode(q.correct_answer);
-      const incorrect = q.incorrect_answers.map(decode);   // three wrong answers
+      const incorrect = q.incorrect_answers.map(decode);
 
-      blk.querySelector('input[name="correct[]"]').value = correct;
-      blk.querySelector('input[name="option1[]"]').value  = incorrect[0] || '';
-      blk.querySelector('input[name="option2[]"]').value  = incorrect[1] || '';
-      blk.querySelector('input[name="option3[]"]').value  = incorrect[2] || '';
+      blk.querySelector('input[name="correct"]').value = correct;
+      blk.querySelector('input[name="option1"]').value = incorrect[0] || '';
+      blk.querySelector('input[name="option2"]').value = incorrect[1] || '';
+      blk.querySelector('input[name="option3"]').value = incorrect[2] || '';
     }
-  }catch(e){ console.error(e); }
+  }catch(err){ console.error(err); }
 }
 
 function autoGenerate(row, btn){
-  if(btn.disabled) return;            // ignore rapid double‑clicks
+  if(btn.disabled) return;
 
-  const now   = Date.now();
-  const wait  = Math.max(0, 7000 - (now - lastFetchTime));   // 7‑s cool‑down
-
+  const wait = Math.max(0, 7000 - (Date.now() - lastFetchTime));
   const original = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Loading…';
 
   setTimeout(async ()=>{
-    await fetchQuestion(row);         // single API call
+    await fetchQuestion(row);
     btn.disabled = false;
     btn.textContent = original;
   }, wait);
 }
 
-/* click handler */
-document.getElementById('q-container').addEventListener('click', e=>{
-  if(e.target.classList.contains('autoQ')){
-    autoGenerate(e.target.closest('.q-row'), e.target);
-  }
-});
-
-/* adjust pre‑rendered rows (edit mode) */
+/* initialise existing rows */
 document.querySelectorAll('.q-row').forEach(adjustRow);
 </script>
-
-{{!-- partial to pre‑render existing rows --}}
-{{#*inline "questionRow"}}
-<div class="q-row" style="border:1px solid #ccc; padding:8px; margin-bottom:8px">
-  <label>Question</label><br>
-  <input name="question[]" value="{{q.question}}" required autocomplete="off"><br>
-
-  <label>Type</label>
-  <select name="type[]" class="q-type">
-    <option value="truefalse"  {{#if (eq q.type "truefalse")}}selected{{/if}}>truefalse</option>
-    <option value="num"        {{#if (eq q.type "num")}}selected{{/if}}>num</option>
-    <option value="multiselect"{{#if (eq q.type "multiselect")}}selected{{/if}}>multiselect</option>
-    <option value="type"       {{#if (eq q.type "type")}}selected{{/if}}>type</option>
-  </select><br>
-
-  <div class="block-truefalse">
-    <label>Answer</label>
-    <select name="correct[]" autocomplete="off">
-      <option value="true"  {{#if (eq q.correct "true")}}selected{{/if}}>True</option>
-      <option value="false" {{#if (eq q.correct "false")}}selected{{/if}}>False</option>
-    </select>
-  </div>
-
-  <div class="block-num">
-    <label>Correct&nbsp;Number</label><br>
-    <input type="number" name="correct[]" value="{{q.correct}}" autocomplete="off"><br>
-    <label>Min</label><br>
-    <input type="number" name="option1[]" value="{{q.option1}}" autocomplete="off"><br>
-    <label>Max</label><br>
-    <input type="number" name="option2[]" value="{{q.option2}}" autocomplete="off"><br>
-  </div>
-
-  <div class="block-type">
-    <label>Correct&nbsp;Answer</label><br>
-    <input name="correct[]" value="{{q.correct}}" autocomplete="off">
-  </div>
-
-  <div class="block-multi">
-    <label>Correct&nbsp;(semicolon‑separated)</label><br>
-    <input name="correct[]" value="{{q.correct}}" autocomplete="off"><br>
-    <label>Option&nbsp;1</label><br>
-    <input name="option1[]" value="{{q.option1}}" autocomplete="off"><br>
-    <label>Option&nbsp;2</label><br>
-    <input name="option2[]" value="{{q.option2}}" autocomplete="off"><br>
-    <label>Option&nbsp;3</label><br>
-    <input name="option3[]" value="{{q.option3}}" autocomplete="off"><br>
-  </div>
-
-  <button type="button" class="delQ">Delete</button>
-</div>
-{{/inline}}
-
-<script>
-document.querySelectorAll('.q-row').forEach(adjustRow);
-</script>
+</body>
+</html>

@@ -1,38 +1,74 @@
-{{> navbar user=user}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{game.title}}</title>
+  <link rel="stylesheet" href="/styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
 
+<body>
+  {{> navbar user=user}}
 
-<html>
-  <head>
-    <title>{{game.title}}</title>
-  </head>
-  <body>
-    <h1>{{game.title}}</h1>
-    <p>{{game.description}}</p>
-    <hr />
+  <div class="container creator-wrap">
+    <!-- ───── SIDEBAR ───── -->
+    <div class="creator-side card">
+      <h2 style="margin-top:0">{{game.title}}</h2>
+      <p>{{game.description}}</p>
 
-    {{#each questions}}
-      <div style="margin-bottom:1.5em">
-        <strong>Q{{@index}}. {{question}}</strong><br />
+      <p><strong>Category:</strong> {{categoryName}}</p>
+      <p><strong>Questions:</strong> {{questions.length}}</p>
+      <p><strong>Plays:</strong> {{playCount}}</p>
 
-        {{#if (eq type "truefalse")}}
-          • True &nbsp; • False
-        {{else if (eq type "num")}}
-          •
-          <em>numeric answer</em>
-        {{else if (eq type "type")}}
-          •
-          <em>free‑text answer</em>
-        {{else}}
-          <!-- multiselect -->
-          <ul>
-            {{#if option1}}<li>{{option1}}</li>{{/if}}
-            {{#if option2}}<li>{{option2}}</li>{{/if}}
-            {{#if option3}}<li>{{option3}}</li>{{/if}}
-          </ul>
+      <a href="/play/{{game.gameid}}" class="btn primary" style="width:100%;margin-top:.8rem">
+        Play&nbsp;Quiz
+      </a>
+
+      {{#if user}}
+        {{#if (eq user.userid game.author_id)}}
+          <a href="/game/edit/{{game.gameid}}" class="btn secondary" style="width:100%;margin-top:.6rem">
+            Edit&nbsp;Quiz
+          </a>
         {{/if}}
-      </div>
-    {{/each}}
+      {{/if}}
+    </div>
 
-    <p><a href="/games">⬅ back to games</a></p>
-  </body>
+    <!-- ───── QUESTIONS AREA ───── -->
+    <div class="creator-questions">
+      <h2>Questions</h2>
+
+      {{#each questions}}
+        <div class="q-row">
+          <div class="q-header">
+            <h3>Q{{inc @index}}</h3>
+            <span style="font-weight:600">{{typeLabel type}}</span>
+          </div>
+
+          <p class="q-text">{{question}}</p>
+
+          {{#if (eq type "truefalse")}}
+            <p><strong>Answer:</strong> {{capitalize correct}}</p>
+
+          {{else if (eq type "num")}}
+            <p>
+              <strong>Answer:</strong> {{correct}}
+              {{#if option1}} (range&nbsp;{{option1}}–{{option2}}){{/if}}
+            </p>
+
+          {{else if (eq type "type")}}
+            <p><strong>Answer:</strong> {{correct}}</p>
+
+          {{else}}
+            <ul style="margin-left:1.2rem">
+              <li><strong>{{correct}}</strong> &nbsp;<em>(correct)</em></li>
+              {{#if option1}}<li>{{option1}}</li>{{/if}}
+              {{#if option2}}<li>{{option2}}</li>{{/if}}
+              {{#if option3}}<li>{{option3}}</li>{{/if}}
+            </ul>
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+  </div>
+</body>
 </html>

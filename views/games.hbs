@@ -1,7 +1,7 @@
 {{> navbar user=user}}
 <div class="container">
   {{#each games}}
-    <div class="card game-flex">
+    <div class="card game-flex" data-id="{{gameid}}">
       <!-- LEFT  ICON -->
       <div class="g-icon">{{catIcon category_id}}</div>
 
@@ -16,13 +16,13 @@
 
       <!-- RIGHT  ACTIONS -->
       <div class="g-actions">
-        <a href="/play/{{gameid}}" target="_blank"><button class="primary">Play</button></a>
+        <a href="/play/{{gameid}}" target="_blank"><button class="btn primary">Play</button></a>
 
         {{#if ../user}}
           {{#if (eq ../user.userid author_id)}}
-            <a href="/game/edit/{{gameid}}"><button>Edit</button></a>
+            <a href="/game/edit/{{gameid}}"><button class="btn secondary">Edit</button></a>
             <form method="post" action="/game/delete/{{gameid}}" style="display:inline">
-              <button class="danger" onclick="return confirm('Delete this game?')">Delete</button>
+              <button class="btn danger" onclick="return confirm('Delete this game?')">Delete</button>
             </form>
           {{/if}}
         {{/if}}
@@ -30,3 +30,13 @@
     </div>
   {{/each}}
 </div>
+
+<script>
+/* open details when clicking card but not its buttons/links */
+document.querySelectorAll('.game-flex').forEach(el=>{
+  el.addEventListener('click',e=>{
+    if(e.target.closest('button,a,form')) return;
+    window.location='/game/'+el.dataset.id;
+  });
+});
+</script>
