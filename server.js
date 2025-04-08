@@ -18,6 +18,19 @@ app.set("view engine", "hbs"); //use hbs handlebars wrapper
 hbs.registerPartials(path.join(__dirname, "views", "partials"));
 hbs.registerHelper("eq", (a, b) => a === b);
 hbs.registerHelper("json", (ctx) => JSON.stringify(ctx));
+hbs.registerHelper("catIcon", (id) => {
+  const map = {
+    17: "🧪",
+    19: "➗",
+    12: "🎵",
+    25: "🎨",
+    23: "📜",
+    24: "🏛️",
+    22: "🌍",
+    9: "❓",
+  };
+  return map[id] || "❔";
+});
 
 app.locals.pretty = true; //to generate pretty view-source code in browser
 
@@ -59,6 +72,7 @@ app.use((req, _res, next) => {
 });
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 app.use(logger("dev"));
+app.use(express.static(path.join(__dirname, "public")));
 //app.use(methodLogger);
 //routes
 app.get("/", routes.gamesOverview);

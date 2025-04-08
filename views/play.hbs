@@ -1,8 +1,7 @@
 {{> navbar user=user}}
 
 <h1>{{title}}</h1>
-<div id="quiz" style="margin-top:1em"></div>
-
+<div class="container card" id="quiz"></div>
 <script>
 const questions = {{{json questions}}};
 let   idx       = 0;

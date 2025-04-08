@@ -101,9 +101,15 @@ function parseURL(request, response) {
 
 exports.gamesOverview = function (req, res) {
   db.all(
-    `SELECT gameid, title, description, author_id 
-    FROM games 
-    ORDER BY gameid`,
+    `SELECT g.gameid,
+                g.title,
+              g.description,
+                g.category_id,
+                g.author_id,
+                (SELECT COUNT(*) FROM questions WHERE game_id = g.gameid) AS questionCount,
+                (SELECT COUNT(*) FROM results   WHERE game_id = g.gameid) AS playCount
+         FROM   games g
+         ORDER  BY g.gameid DESC`,
     function (err, rows) {
       res.render("games", {
         title: "All Trivia Games",

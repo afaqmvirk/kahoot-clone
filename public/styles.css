@@ -1,0 +1,201 @@
+/*  Google font  */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
+
+:root {
+  --yellow-0: #ffdd33;
+  --yellow-1: #ffc00a;
+  --yellow-2: #ffa602;
+  --yellow-3: #d89e00;
+  --orange-0: #fad09e;
+  --orange-1: #f5a23d;
+  --orange-2: #eb670f;
+  --orange-3: #e24104;
+  --red-0: #ff99aa;
+  --red-1: #ff3355;
+  --red-2: #e21b3c;
+  --red-3: #c60929;
+  --green-0: #b2df9c;
+  --green-1: #66bf39;
+  --green-2: #26890c;
+  --green-3: #106b03;
+  --teal-0: #99e5e5;
+  --teal-1: #33cccc;
+  --teal-2: #0aa3a3;
+  --teal-4: #028282;
+  --blue-0: #a2d1f2;
+  --blue-1: #45a3e5;
+  --blue-2: #1368ce;
+  --blue-3: #0542b9;
+  --purple-0: #c2a5df;
+  --purple-1: #864cbf;
+  --purple-2: #46178f;
+  --purple-3: #25076b;
+
+  --bg: #fafafa;
+  --text: #222;
+  --card-bg: #fff;
+  --card-shadow: rgba(0, 0, 0, 0.06) 0 4px 10px;
+  --radius: 10px;
+}
+
+/*  ─────────  global  ───────── */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Montserrat", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--blue-2);
+  text-decoration: none;
+  font-weight: 600;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  margin-top: 0;
+}
+
+button,
+input[type="submit"] {
+  font-family: inherit;
+  padding: 0.6em 1.4em;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.05s ease;
+}
+button:active {
+  transform: scale(0.96);
+}
+button.primary {
+  background: var(--purple-2);
+  color: #fff;
+}
+button.danger {
+  background: var(--red-2);
+  color: #fff;
+}
+button.neutral {
+  background: var(--teal-1);
+  color: #fff;
+}
+
+input,
+select,
+textarea {
+  padding: 0.5em 0.7em;
+  border: 2px solid var(--blue-1);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.3em 0 1em 0;
+}
+
+/*  ─────────  layout helpers  ───────── */
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 1.5rem;
+}
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/*  ─────────  navbar  ───────── */
+nav {
+  background: var(--purple-3);
+  color: #fff;
+  padding: 0.8rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+nav a {
+  color: #fff;
+  font-weight: 600;
+  margin-left: 1rem;
+}
+nav a:hover {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+/*  ─────────  games list  ───────── */
+.game-item h3 {
+  margin: 0.2rem 0;
+}
+.game-item p {
+  margin: 0.4rem 0 1rem 0;
+  color: #555;
+}
+.game-item .actions a,
+.game-item .actions form button {
+  margin-right: 0.5rem;
+}
+
+/*  ─────────  quiz play view  ───────── */
+#quiz h2 {
+  margin-bottom: 1rem;
+}
+#quiz button {
+  display: block;
+  width: 100%;
+  margin: 0.5rem 0;
+  background: var(--yellow-1);
+  color: #000;
+}
+#quiz button:hover {
+  background: var(--yellow-2);
+}
+#quiz input {
+  width: auto;
+  margin-right: 0.6rem;
+}
+
+/* leaderboard */
+ol {
+  padding-left: 1.4rem;
+}
+
+.game-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.g-icon {
+  font-size: 3rem;
+  flex: 0 0 60px;
+  text-align: center;
+}
+.g-info {
+  flex: 1 1 auto;
+}
+.g-info .desc {
+  margin: 0.2rem 0 0.6rem 0;
+  color: #555;
+}
+.g-info .meta {
+  color: #777;
+  font-weight: 600;
+}
+
+.g-actions button {
+  margin-left: 0.4rem;
+}

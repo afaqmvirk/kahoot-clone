@@ -1,17 +1,24 @@
-<nav style="padding:0.5em 1em; background:#eee; margin-bottom:1em">
-  <a href="/games"><strong>Trivia‑Hub</strong></a>
+<head>
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+</head>
 
-  <span style="float:right">
+<nav>
+  <div style="display:flex;align-items:center;gap:.8rem">
+    <a href="/games"><img src="/logo.png" alt="logo" style="height:36px" /></a>
+    <a href="/games">Home</a>
+    {{#if user}}<a href="/game/new">Create</a>{{/if}}
+  </div>
+
+  <div style="display:flex;align-items:center;gap:1rem">
     {{#if user}}
-      Hello&nbsp;<strong>{{user.userid}}</strong>
-      <a href="/game/new">Create&nbsp;Game</a>
-      {{#if (eq user.role "admin")}} | <a href="/admin">Admin</a>{{/if}}
-      |
-      <a href="/logout">Log&nbsp;out</a>
+      <span>Hello&nbsp;<strong>{{user.userid}}</strong></span>
+      {{#if (eq user.role "admin")}}<a href="/admin">Admin</a>{{/if}}
+      <a href="/logout" style="text-decoration:underline">Log&nbsp;out</a>
     {{else}}
-      <a href="/auth">Log&nbsp;in</a>
-      /
-      <a href="/auth">Sign&nbsp;up</a>
+      <a href="/auth"><button class="primary">Log&nbsp;in</button></a>
+      <a href="/auth"><button class="neutral">Sign&nbsp;up</button></a>
     {{/if}}
-  </span>
+  </div>
 </nav>

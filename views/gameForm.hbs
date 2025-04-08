@@ -1,7 +1,7 @@
 {{> navbar user=user}}
 
 <h1>{{#if isEdit}}Edit Game{{else}}Create Game{{/if}}</h1>
-
+<div class="container card">
 <form method="post" action="{{#if isEdit}}/game/update/{{game.gameid}}{{else}}/game/save{{/if}}" autocomplete="off">
   <label>Title</label><br>
   <input name="title" value="{{game.title}}" required><br><br>
@@ -28,9 +28,9 @@
   <button type="button" id="addQ">＋ Add Question</button>
   <br><br>
 
-  <button type="submit">Save Game</button>
+  <button class="primary" type="submit">Save Game</button>
 </form>
-
+</div>
 <script>
 const decode = s => { const t=document.createElement('textarea'); t.innerHTML=s; return t.value; };
 function adjustRow(row){
