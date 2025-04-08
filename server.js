@@ -43,8 +43,11 @@ hbs.registerHelper(
       type: "Text",
     }[t] || t)
 );
+hbs.registerHelper("or", function (a, b) {
+  return a || b;
+});
 
-app.locals.pretty = true; //to generate pretty view-source code in browser
+app.locals.pretty = true;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -87,43 +90,63 @@ app.use(logger("dev"));
 app.use(express.static(path.join(__dirname, "public")));
 //app.use(methodLogger);
 //routes
-app.get("/", routes.gamesOverview);
-app.get("/index", routes.index);
 
+// main view
+app.get("/", routes.gamesOverview);
 app.get("/games", routes.gamesOverview);
 
+// auth
 app.get("/auth", routes.authPage);
 app.post("/login", routes.login);
 app.post("/signup", routes.signup);
 app.get("/logout", routes.logout);
 
-/* ----------  search / autocomplete  ---------- */
+//search for quizzes
 app.get("/api/search", routes.apiSearch); // returns JSON
 app.get("/search", routes.searchGames); // full results page
 
-app.get("/admin", routes.adminPanel); // admin‑only page
+// admin-only, shows forbidden if accessed otherwise
+app.get("/admin", routes.adminPanel);
 
-//CRUD actions for games
+// CRUD actions for games
 app.get("/game/new", routes.requireLogin, routes.newGameForm);
 app.get("/game/:id", routes.gameDetails);
-
 app.post("/game/save", routes.requireLogin, routes.saveGame);
 app.get("/game/edit/:id", routes.requireLogin, routes.editGameForm);
 app.post("/game/update/:id", routes.requireLogin, routes.updateGame);
 app.post("/game/delete/:id", routes.requireLogin, routes.deleteGame);
 
+// play mode
 app.get("/play/:id", routes.requireLogin, routes.playGame);
 app.post("/play/:id/result", routes.requireLogin, routes.recordResult);
 
-//start server
 app.listen(PORT, (err) => {
-  if (err) console.log(err);
-  else {
-    console.log(`Server listening on port: ${PORT} CNTL:-C to stop`);
-    console.log(`To Test:`);
-    console.log("user: ldnel password: secret");
-    console.log("http://localhost:3000/index.html");
-    console.log("http://localhost:3000/games");
-    console.log("http://localhost:3000/admin/372");
+  console.clear();
+  if (err) {
+    console.log("\x1b[31m%s\x1b[0m", err); // Red for errors
+  } else {
+    console.log(
+      "\x1b[36m%s\x1b[0m",
+      `🌐  Server listening on port: ${PORT} | Press CTRL+C to stop`
+    );
+    console.log("\x1b[35m%s\x1b[0m", `👋  Welcome to < Kode ! >`);
+    console.log(
+      "\x1b[90m%s\x1b[0m",
+      `🔐  To test, log in with credentials, or create your own account.\n`
+    );
+    console.log("\x1b[36m%s\x1b[0m", "➡️   http://localhost:3000/auth \n");
+    console.log(
+      "\x1b[37m%s\x1b[0m",
+      `🔺    user: admin1     pass: adminpass     (\x1b[31madmin\x1b[0m)`
+    );
+    console.log(
+      "\x1b[37m%s\x1b[0m",
+      `🔹    user: guest1     pass: guestpass     (\x1b[34mguest\x1b[0m)`
+    );
+    console.log(
+      "\n\x1b[90m%s\x1b[0m",
+      "🎮   Or navigate to the games without an account! \n"
+    );
+    console.log("\x1b[36m%s\x1b[0m", "➡️   http://localhost:3000 \n");
   }
 });

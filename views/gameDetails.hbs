@@ -19,16 +19,25 @@
       <p><strong>Category:</strong> {{categoryName}}</p>
       <p><strong>Questions:</strong> {{questions.length}}</p>
       <p><strong>Plays:</strong> {{playCount}}</p>
+      <p><strong>Created by:</strong> {{author_id}}</p>
 
-      <a href="/play/{{game.gameid}}" class="btn primary" style="width:100%;margin-top:.8rem">
-        Play&nbsp;Quiz
-      </a>
+
+              <a href="/play/{{game.gameid}}" target="_blank">
+          <button class="btn primary">Play Quiz</button>
+        </a>
 
       {{#if user}}
         {{#if (eq user.userid game.author_id)}}
-          <a href="/game/edit/{{game.gameid}}" class="btn secondary" style="width:100%;margin-top:.6rem">
+          <button href="/game/edit/{{game.gameid}}" class="btn secondary" >
             Edit&nbsp;Quiz
-          </a>
+          </button>
+        {{/if}}
+        {{#if (or (eq user.userid game.author_id) (eq user.role "admin"))}}
+            <form method="post" action="/game/delete/{{game.gameid}}" style="width:100%;margin-top:.6rem" >
+            <button class="btn danger" onclick="return confirm('Delete this game?')" >
+                Delete
+            </button>
+            </form>
         {{/if}}
       {{/if}}
     </div>

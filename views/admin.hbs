@@ -1,11 +1,10 @@
 {{> navbar user=user}}
-
-
 <html>
   <head>
     <title>{{title}}</title>
   </head>
   <body>
+    <div class="container">
     
     <h1>{{title}}</h1>
 
@@ -27,11 +26,11 @@
           <td>{{result_time}}</td>
           <td>{{player}}</td>
           <td>{{game}}</td>
-          <td>{{correct_answers}}</td>
+          <td>{{score}}</td>
         </tr>
       {{/each}}
     </table>
 
     <p><a href="/games">⬅ back to games</a></p>
-  </body>
+  </body></div>
 </html>

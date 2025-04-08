@@ -1,83 +1,432 @@
-{{> navbar user=user}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body {
+      background:#fafafa; margin:0; padding:0;
+      font-family: sans-serif;
+    }
+    .play-container {
+      max-width:900px;
+      margin:2rem auto;
+      position:relative;
+      background:#fff;
+      border-radius:8px;
+      box-shadow:0 4px 10px rgba(0,0,0,.1);
+      padding:1.5rem 1rem 2rem 1rem;
+      text-align:center;
+    }
+    h1.title {
+      font-size:2rem; margin-bottom:1rem;
+    }
 
-<h1>{{title}}</h1>
-<div class="container card" id="quiz"></div>
+    /* ~~~~~ Timer ~~~~~ */
+    #timer {
+      position:absolute; top:10px; right:10px;
+      background:#e53935; color:#fff;
+      width:48px; height:48px;
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:bold; font-size:1.2rem;
+    }
+
+
+    .btn {
+      padding:.7rem 1.3rem;
+      border:none; border-radius:8px;
+      background:#6a1b9a; color:#fff;
+      cursor:pointer; font-size:1rem; font-weight:600;
+      margin:.6rem;
+    }
+    .btn:hover { opacity:.9; }
+    .btn:disabled { opacity:.6; cursor:not-allowed; }
+
+    /* answer buttons grid */
+    #answerBtns {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:1rem; margin-top:1rem;
+    }
+    .ansBtn {
+      height:60px; border:none; border-radius:8px;
+      font-weight:600; color:#fff;
+      box-shadow:0 3px 0 rgba(0,0,0,.25);
+      font-size:1rem; cursor:pointer;
+      transition:transform .1s, box-shadow .1s, opacity .2s;
+    }
+    .ansBtn:active { transform:translateY(2px); box-shadow:none; }
+    .red    { background:#d32f2f; }
+    .blue   { background:#1976d2; }
+    .yellow { background:#fbc02d; color:#000; }
+    .green  { background:#388e3c; }
+
+    /* ~~~~~ For text & numeric type questions ~~~~~ */
+    #textAnswer, #numAnswer {
+      margin-top:1rem; padding:.5rem .7rem;
+      width:80%; max-width:300px;
+      border:2px solid #aaa; border-radius:6px;
+    }
+
+    /* questionBox */
+    #questionBox {
+      margin:1rem 0; font-size:1.3rem; font-weight:600;
+    }
+
+    /* ~~~~~ Feedback overlay ~~~~~ */
+    #feedbackOverlay {
+      position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.5);
+      display:none; /* shown after 2s */
+      align-items:center; justify-content:center;
+      z-index: 2;
+    }
+    #feedbackModal {
+      background:#fff; padding:2rem; border-radius:8px;
+      max-width:400px; width:80%; text-align:center;
+      box-shadow:0 4px 12px rgba(0,0,0,.3);
+    }
+    #feedbackResult {
+      font-size:1.5rem; margin-bottom:1rem;
+    }
+    #feedbackPoints { margin-bottom:1rem; }
+
+    /* color-coded for correct vs incorrect */
+    #feedbackModal.correct { border:6px solid #4caf50; }
+    #feedbackModal.incorrect { border:6px solid #f44336; }
+
+    /* ~~~~~ Leaderboard screen ~~~~~ */
+    #leaderboardScreen {
+      text-align:center;
+    }
+    #leaderboardList {
+      margin:1rem auto; max-width:300px; text-align:left;
+    }
+    #leaderboardList li {
+      padding:.3rem 0;
+    }
+  </style>
+</head>
+<body>
+  {{> navbar user=user}}
+
+  <div id="feedbackOverlay">
+    <div id="feedbackModal">
+      <div id="feedbackResult"></div>
+      <div id="feedbackPoints"></div>
+      <button class="btn" id="feedbackNextBtn">Next</button>
+    </div>
+  </div>
+
+  <div class="play-container">
+    <!-- INTRO SCREEN -->
+    <div id="introScreen">
+      <h1 class="title">{{title}}</h1>
+      <p>Ready to start?</p>
+      <button class="btn" id="startBtn">Start</button>
+    </div>
+
+    <!-- QUESTION SCREEN -->
+    <div id="questionScreen">
+      <div id="timer">20</div>
+      <h2 id="qNumber"></h2>
+      <div id="questionBox"></div>
+
+      <!-- MULTIPLE-CHOICE ANSWERS -->
+      <div id="answerBtns">
+        <button class="ansBtn red"    id="btnA"></button>
+        <button class="ansBtn blue"   id="btnB"></button>
+        <button class="ansBtn yellow" id="btnC"></button>
+        <button class="ansBtn green"  id="btnD"></button>
+      </div>
+
+      <!-- For text questions -->
+      <div style="margin-top:1rem;">
+        <input type="text" id="textAnswer" placeholder="Type answer..." style="display:none">
+        <input type="number" id="numAnswer" placeholder="Number answer..." style="display:none">
+      </div>
+      <button class="btn" id="submitAnswer" style="display:none">Submit</button>
+    </div>
+
+    <!-- LEADERBOARD SCREEN -->
+    <div id="leaderboardScreen">
+      <h2>Final Score: <span id="finalScore">0</span></h2>
+      <h3>Top 5 Players:</h3>
+      <ol id="leaderboardList"></ol>
+      <button class="btn" id="backBtn">Back to Games</button>
+    </div>
+  </div>
+
+  <!-- AUDIO -->
+  <audio id="bgMusic" loop></audio>
+  <audio id="gong" src="/gong.mp3"></audio>
+  <audio id="sndCorrect" src="/correct.mp3"></audio>
+  <audio id="sndIncorrect" src="/incorrect.mp3"></audio>
+
 <script>
-const questions = {{{json questions}}};
-let   idx       = 0;
-let   correct   = 0;
+/*****************************************************
+ * GLOBALS
+ *****************************************************/
+const questions = {{{json questions}}};  // array of question objects
+const gameId = "{{gameId}}";
 
-/* ----------  helpers  ---------- */
-const shuffle = a => a.sort(()=>Math.random()-0.5);
-const decode  = s => { const t=document.createElement('textarea'); t.innerHTML=s; return t.value; };
+let index=0, score=0, timeLeft=20, timerID=null, answered=false;
+let correctAns="", questionCount = questions.length;
 
-function render(){
-  if(idx >= questions.length){ return finish(); }
+// random background track each question
+const tracks=['/song1.mp3','/song2.mp3','/song3.mp3'];
 
-  const q  = questions[idx];
-  const div= document.getElementById('quiz');
-  div.innerHTML = '';                         // clear
+// DOM refs
+const introScreen       = document.getElementById('introScreen');
+const questionScreen    = document.getElementById('questionScreen');
+const leaderboardScreen = document.getElementById('leaderboardScreen');
+const timerEl           = document.getElementById('timer');
+const questionBox       = document.getElementById('questionBox');
+const qNumberEl         = document.getElementById('qNumber');
 
-  const h2 = document.createElement('h2');
-  h2.textContent = `Q${idx+1}. ${decode(q.question)}`;
-  div.appendChild(h2);
+const A=document.getElementById('btnA');
+const B=document.getElementById('btnB');
+const C=document.getElementById('btnC');
+const D=document.getElementById('btnD');
+const multiBtns=[A,B,C,D];
+
+const textAnswer = document.getElementById('textAnswer');
+const numAnswer  = document.getElementById('numAnswer');
+const submitBtn  = document.getElementById('submitAnswer');
+
+const bgMusic    = document.getElementById('bgMusic');
+const gong       = document.getElementById('gong');
+const sndCorrect = document.getElementById('sndCorrect');
+const sndIncorrect=document.getElementById('sndIncorrect');
+
+// Feedback overlay
+const feedbackOverlay = document.getElementById('feedbackOverlay');
+const feedbackModal   = document.getElementById('feedbackModal');
+const feedbackResult  = document.getElementById('feedbackResult');
+const feedbackPoints  = document.getElementById('feedbackPoints');
+const feedbackNextBtn = document.getElementById('feedbackNextBtn');
+
+const finalScoreEl     = document.getElementById('finalScore');
+const leaderboardListEl= document.getElementById('leaderboardList');
+
+/*****************************************************
+ * START & EVENT HANDLERS
+ *****************************************************/
+document.getElementById('startBtn').onclick = ()=>{
+  introScreen.style.display='none';
+  questionScreen.style.display='';
+  loadQuestion();
+};
+feedbackNextBtn.onclick=()=>{
+  feedbackOverlay.style.display='none';
+  // go to next question or finish
+  index++;
+  if(index<questionCount) {
+    questionScreen.style.display='';
+    loadQuestion();
+  } else {
+    finishGame();
+  }
+};
+document.getElementById('backBtn').onclick=()=>{
+  window.location='/games';
+};
+
+// For text & numeric questions
+submitBtn.onclick = ()=> {
+  if(answered) return;
+  handleAnswer( textAnswer.value || numAnswer.value );
+};
+
+/*****************************************************
+ * LOAD QUESTION
+ *****************************************************/
+function loadQuestion(){
+  answered=false;
+  timeLeft=20;
+  timerEl.textContent=timeLeft;
+  qNumberEl.textContent=`Question ${index+1} of ${questionCount}`;
+
+  // pick random background track
+  bgMusic.src = tracks[Math.floor(Math.random()*tracks.length)];
+  bgMusic.currentTime=0;
+  bgMusic.play().catch(()=>{});
+
+  // reset UI
+  textAnswer.style.display='none'; textAnswer.value='';
+  numAnswer.style.display='none';  numAnswer.value='';
+  submitBtn.style.display='none';
+
+  multiBtns.forEach(btn=>{
+    btn.style.display='block';
+    btn.disabled=false;
+    btn.style.opacity='1';
+    btn.textContent='';
+  });
+
+  // load from questions
+  const q = questions[index];
+  questionBox.textContent = q.question || '???';
+  correctAns = (q.correct||'').trim().toLowerCase();
 
   if(q.type==='truefalse'){
-    ['True','False'].forEach(ans => mkBtn(ans, ans.toLowerCase()===q.correct));
-  }else if(q.type==='multiselect'){
-    const opts = shuffle([q.correct, q.option1, q.option2, q.option3].filter(Boolean).map(decode));
-    opts.forEach(ans => mkBtn(ans, ans===decode(q.correct)));
-  }else if(q.type==='num'){
-    mkInput('number', (val)=>{
-      const num = parseFloat(val);
-      const min = parseFloat(q.option1);
-      const max = parseFloat(q.option2);
-      return (!isNaN(min)||!isNaN(max)) ? (num>=min && num<=max) : (num==parseFloat(q.correct));
-    });
-  }else{ /* type */
-    mkInput('text', val => val.trim().toLowerCase() === decode(q.correct).toLowerCase());
-  }
+    A.textContent='True';  B.textContent='False';
+    C.style.display='none';
+    D.style.display='none';
 
-  /* ----------  factory helpers ---------- */
-  function mkBtn(label,isCorrect){
-    const b=document.createElement('button'); b.textContent=label;
-    b.onclick=()=>judge(isCorrect);
-    div.appendChild(b);
+    A.onclick=()=>clickChoice(A.textContent);
+    B.onclick=()=>clickChoice(B.textContent);
+    C.onclick=null; D.onclick=null;
   }
-  function mkInput(htmlType, judgeFn){
-    const inp=document.createElement('input'); inp.type=htmlType;
-    const b=document.createElement('button');  b.textContent='Submit';
-    b.onclick=()=>judge(judgeFn(inp.value));
-    div.appendChild(inp); div.appendChild(b);
+  else if(q.type==='multiselect'){
+    const arr=[q.correct,q.option1,q.option2,q.option3]
+      .filter(x=>x)
+      .map(s=>s.trim());
+    shuffle(arr);
+    A.textContent=arr[0]||''; B.textContent=arr[1]||'';
+    C.textContent=arr[2]||''; D.textContent=arr[3]||'';
+
+    A.onclick=()=>clickChoice(A.textContent);
+    B.onclick=()=>clickChoice(B.textContent);
+    C.onclick=()=>clickChoice(C.textContent);
+    D.onclick=()=>clickChoice(D.textContent);
   }
+else if(q.type==='num'){
+    // user must type a numeric answer
+    multiBtns.forEach(b=>b.style.display='none');
+    numAnswer.style.display='';
+    submitBtn.style.display='';
+    numAnswer.disabled = false;    // Explicitly re-enable
+    submitBtn.disabled = false;      // Explicitly re-enable
+}
+else {
+    // free-text question
+    multiBtns.forEach(b=>b.style.display='none');
+    textAnswer.style.display='';
+    submitBtn.style.display='';
+    textAnswer.disabled = false;     // Explicitly re-enable
+    submitBtn.disabled = false;      // Explicitly re-enable
 }
 
-function judge(ok){
-  alert(ok?'Correct!':'Incorrect.');
-  if(ok) correct++;
-  idx++; render();
+
+  // start 20s countdown
+  clearInterval(timerID);
+  timerID=setInterval(()=>{
+    timeLeft--;
+    timerEl.textContent=timeLeft;
+    if(timeLeft<=0) clickChoice(null); // auto-timeout
+  },1000);
 }
 
-function finish(){
-  const div = document.getElementById('quiz');
-  div.innerHTML = `<h2>Finished – ${correct}/${questions.length} correct.</h2>
-                  `;
+/*****************************************************
+ * CHOICE CLICK HANDLER
+ *****************************************************/
+function clickChoice(chosenText){
+  if(answered) return;
+  handleAnswer(chosenText);
+}
 
-  fetch('/play/{{gameId}}/result',{
+/*****************************************************
+ * HANDLE ANSWER
+ *****************************************************/
+function handleAnswer(chosen){
+  answered=true;
+  clearInterval(timerID);
+
+  // disable & darken all buttons
+  multiBtns.forEach(btn=>{
+    btn.disabled=true;
+    btn.style.opacity='0.6';
+  });
+  submitBtn.disabled=true; textAnswer.disabled=true; numAnswer.disabled=true;
+
+  // pause BG music, play gong
+  bgMusic.pause();
+  gong.currentTime=0; gong.play().catch(()=>{});
+
+  // check correctness
+  let isCorrect=false;
+  const c = (chosen||'').trim().toLowerCase();
+  if(c && c===correctAns) {
+    isCorrect=true;
+  }
+
+  let pts=0;
+  if(isCorrect){
+    pts= 500 + Math.floor((timeLeft/20)*500);
+  }
+  score+=pts;
+
+  // after 2s, show feedback overlay
+  setTimeout(()=>{
+    feedbackOverlay.style.display='flex'; // show overlay, center the modal
+
+    if(isCorrect){
+      feedbackModal.classList.remove('incorrect');
+      feedbackModal.classList.add('correct');
+      feedbackResult.textContent='Correct!';
+      feedbackPoints.textContent=`+${pts} points (score: ${score})`;
+      sndCorrect.currentTime=0; sndCorrect.play().catch(()=>{});
+    } else {
+      feedbackModal.classList.remove('correct');
+      feedbackModal.classList.add('incorrect');
+      feedbackResult.textContent='Incorrect!';
+      feedbackPoints.textContent=`+0 points (score: ${score})`;
+      sndIncorrect.currentTime=0; sndIncorrect.play().catch(()=>{});
+    }
+  },2000);
+}
+
+/*****************************************************
+ * FINISH GAME => show LEADERBOARD
+ *****************************************************/
+function finishGame(){
+  feedbackOverlay.style.display='none';
+  questionScreen.style.display='none';
+  introScreen.style.display='none';
+
+  // fetch top 5 scoreboard
+  fetch(`/play/${gameId}/result`, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({correct})
+    body:JSON.stringify({score})
   })
   .then(r=>r.json())
   .then(data=>{
-     if(data.status!=='ok') return;
-     /* render leaderboard */
-     const list = data.leaderboard
-       .map((r,i)=>`<li>${r.user} – ${r.score}</li>`)
-       .join('');
-     div.innerHTML += `<h3>Leaderboard (Top&nbsp;5)</h3><ol>${list}</ol>`;
+    finalScoreEl.textContent=score;
+    // build top 5
+    leaderboardListEl.innerHTML='';
+    data.leaderboard.forEach((row,i)=>{
+      const li=document.createElement('li');
+      li.textContent=`${i+1}. ${row.user} – ${row.score}`;
+      leaderboardListEl.appendChild(li);
+    });
+    leaderboardScreen.style.display='';
   });
- }
+}
 
-render();
+/*****************************************************
+ * UTIL
+ *****************************************************/
+function shuffle(a){
+  for(let i=a.length-1; i>0; i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+}
+
+/*****************************************************
+ * INIT
+ *****************************************************/
+document.addEventListener('DOMContentLoaded', ()=>{
+  // hide everything except intro
+  introScreen.style.display='';
+  questionScreen.style.display='none';
+  leaderboardScreen.style.display='none';
+  feedbackOverlay.style.display='none';
+});
 </script>
+</body>
+</html>

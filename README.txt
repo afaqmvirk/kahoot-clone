@@ -15,8 +15,9 @@ TEST INSTRUCTIONS:
     Navigate to
     http://localhost:3000/index.html
     with credentials:
-    user: ldnel  -  pass: secret   (guest)
-    user: afaq   -  pass: afaq123  (admin)
+    user: guest1    -  pass: guestpass   (guest)
+    user: admin1    -  pass: adminpass  (admin)
+    (alternatively, you may create your own account)
 
-VIDEO DEMONSTRATIONS: 
+VIDEO DEMONSTRATION : 
     https://youtu.be/MdAW1ugFseQ

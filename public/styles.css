@@ -31,11 +31,11 @@
   --purple-2: #46178f;
   --purple-3: #25076b;
 
-  --bg: #fafafa;
+  --bg: #e5e5e5;
   --text: #222;
   --card-bg: #fff;
-  --card-shadow: rgba(0, 0, 0, 0.06) 0 4px 10px;
-  --radius: 10px;
+  --card-shadow: rgba(0, 0, 0, 0.06) 0 4px 0px;
+  --radius: 6px;
 }
 
 /*  ─────────  global  ───────── */
@@ -137,8 +137,8 @@ nav a:hover {
 }
 
 /*  ─────────  games list  ───────── */
-.game-item h3 {
-  margin: 0.2rem 0;
+.g-info h3 {
+  margin: 0.3rem 0;
 }
 .game-item p {
   margin: 0.4rem 0 1rem 0;
@@ -179,6 +179,10 @@ ol {
   justify-content: space-between;
   gap: 1.5rem;
 }
+.game-flex:hover {
+  cursor: pointer;
+  transform: translateY(-4px);
+}
 .g-icon {
   font-size: 3rem;
   flex: 0 0 60px;
@@ -203,16 +207,13 @@ ol {
 /* ───── buttons ───── */
 .btn {
   font-family: inherit;
+  font-size: large;
   padding: 0.45em 1.1em;
   border: none;
   border-radius: 4px; /* tighter corners */
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.06s, box-shadow 0.06s, background 0.06s;
-}
-
-/* hard shadow */
-.btn {
+  transition: transform 0.01s, box-shadow 0.01s, background 0.01s;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
 }
 /* colour‑matched hard shadow */
@@ -246,15 +247,9 @@ ol {
 }
 
 .btn:hover {
-  transform: translateY(2px);
+  transform: translateY(4px);
   box-shadow: none;
   filter: brightness(0.9);
-}
-/* press effect */
-.btn:hover {
-  transform: translateY(2px);
-  box-shadow: none;
-  filter: brightness(0.9); /* darker background */
 }
 
 nav {
@@ -269,6 +264,7 @@ nav {
   transform: translateX(-50%);
   width: 320px;
   background: #fff;
+  color: var(--text);
   border: 1px solid #ccc;
   border-radius: 4px;
   max-height: 240px;

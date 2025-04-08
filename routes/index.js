@@ -116,6 +116,7 @@ exports.gamesOverview = function (req, res) {
         games: rows,
         user: req.user,
       });
+      console.log(req.user);
     }
   );
 };
@@ -136,6 +137,8 @@ exports.gameDetails = function (req, res) {
            FROM questions WHERE game_id = ?`,
         [gameId],
         function (err, questions) {
+          console.log(req.user);
+
           res.render("gameDetails", {
             title: game.title,
             game: game,
@@ -143,6 +146,7 @@ exports.gameDetails = function (req, res) {
             categoryName: game.categoryName || "—",
             playCount: game.playCount || 0,
             user: req.user,
+            author_id: game.author_id,
           });
         }
       );
@@ -159,7 +163,7 @@ exports.adminPanel = function (req, res) {
     db.all(
       `SELECT r.resultid,
                 r.result_time,
-                r.correct_answers,
+                r.score,
                 u.userid          AS player,
                 g.title           AS game
          FROM   results r
@@ -368,7 +372,7 @@ exports.playGame = (req, res) => {
     if (!game) return res.sendStatus(404);
     db.all("SELECT * FROM questions WHERE game_id = ?", [id], (e, qs) => {
       res.render("play", {
-        title: `Play – ${game.title}`,
+        title: game.title,
         gameId: id,
         questions: qs, // sent to client as JSON
         user: req.user,
@@ -378,23 +382,18 @@ exports.playGame = (req, res) => {
 };
 
 exports.recordResult = (req, res) => {
-  const correct = parseInt(req.body.correct, 10) || 0;
+  const score = parseInt(req.body.score, 10) || 0;
   const gid = req.params.id;
   const uid = req.user.userid;
   db.run(
-    `INSERT INTO results (user_id,game_id,correct_answers)
+    `INSERT INTO results (user_id,game_id,score)
          VALUES (?,?,?)`,
-    [uid, gid, correct],
+    [uid, gid, score],
     function (err) {
       if (err) return res.json({ status: "error" });
       /* fetch top‑5 leaderboard for this game */
       db.all(
-        `SELECT user_id AS user,
-                  correct_answers AS score
-           FROM   results
-           WHERE  game_id = ?
-           ORDER  BY score DESC, result_time ASC
-           LIMIT  5`,
+        "SELECT user_id AS user, score FROM results WHERE game_id=? ORDER BY score DESC LIMIT 5",
         [gid],
         (e, rows) => res.json({ status: "ok", leaderboard: rows })
       );

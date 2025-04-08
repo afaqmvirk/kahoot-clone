@@ -7,7 +7,7 @@
 <nav>
   <div style="display:flex;align-items:center;gap:1rem">
     <a href="/games"><img src="/logo.png" alt="logo" style="height:34px"></a>
-    <a href="/game/new" {{#unless user}}style="display:none"{{/unless}}>Create</a>
+
   </div>
 
 <!-- SEARCH BAR -->
@@ -19,11 +19,13 @@
   <div id="acBox" class="autocomplete-box" style="display:none"></div>
 </div>
 
-
+<!-- SEARCH BAR -->
   <div style="display:flex;align-items:center;gap:1rem">
     {{#if user}}
       <span>Hello&nbsp;<strong>{{user.userid}}</strong></span>
+    <a href="/game/new" {{#unless user}}style="display:none"{{/unless}}>Create</a>
       {{#if (eq user.role "admin")}}<a href="/admin">Admin</a>{{/if}}
+
       <a href="/logout" style="text-decoration:underline">Log&nbsp;out</a>
     {{else}}
       <a href="/auth"><button class="btn primary">Log&nbsp;in</button></a>
