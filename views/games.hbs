@@ -1,4 +1,5 @@
 {{> navbar user=user}}
+
 <div class="container">
   {{#each games}}
     <div class="card game-flex" data-id="{{gameid}}">
@@ -12,21 +13,20 @@
         </div>
       </div>
 
-      <!-- RIGHT ACTIONS -->
       <div class="g-actions">
         <a href="/play/{{gameid}}" target="_blank">
           <button class="btn primary">Play</button>
         </a>
 
         {{#if ../user}}
-          <!-- Edit is author-only -->
+          <!-- edit is author-only -->
           {{#if (eq ../user.userid author_id)}}
             <a href="/game/edit/{{gameid}}">
               <button class="btn secondary">Edit</button>
             </a>
           {{/if}}
 
-          <!-- Delete if user is author OR user.role is admin -->
+          <!-- delete if user is author OR user.role is admin -->
           {{#if (or (eq ../user.userid author_id) (eq ../user.role "admin"))}}
             <form method="post" action="/game/delete/{{gameid}}" style="display:inline">
               <button class="btn danger" onclick="return confirm('Delete this game?')">
@@ -42,7 +42,7 @@
 </div>
 
 <script>
-  /* Open details when clicking card but not its buttons/links */
+  // open details when clicking card
   document.querySelectorAll('.game-flex').forEach(el => {
     el.addEventListener('click', e => {
       if (e.target.closest('button,a,form')) return;

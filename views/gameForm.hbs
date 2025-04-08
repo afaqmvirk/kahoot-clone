@@ -72,7 +72,6 @@
       <button type="button" class="btn primary autoQ">Generate</button>
     </div>
 
-    <!-- body -->
     <input name="question" value="{{q.question}}" placeholder="Question" required>
 
     <div class="block-truefalse">
@@ -108,13 +107,11 @@
   </div>
   {{/inline}}
 
-  <!-- ───── BLANK ROW TEMPLATE (hidden) ───── -->
   <template id="blankRow">
     {{> questionRow idx=0 q=(object) }}
   </template>
 
 <script>
-/* ---------- helper ---------- */
 const decode = s => { const t=document.createElement('textarea'); t.innerHTML=s; return t.value; };
 
 function adjustRow(row){
@@ -128,17 +125,17 @@ function adjustRow(row){
   };
 
   for (const [key, div] of Object.entries(blocks)){
-    const on = (key === t);                 // is this the active block?
+    const on = (key === t); 
     div.style.display = on ? '' : 'none';
     div.querySelectorAll('input,select').forEach(el=>{
-      el.disabled = !on;                    // <─ THE IMPORTANT LINE
+      el.disabled = !on; 
     });
   }
 }
 
 
 
-/* ---------- add / duplicate / delete ---------- */
+// ADD, DUPLICATE, DELETE
 const container = document.getElementById('q-container');
 function updateCount(){
   document.getElementById('qCount').textContent = container.children.length;
@@ -174,8 +171,8 @@ container.addEventListener('change', e=>{
   }
 });
 
-/* ---------- AUTO‑GENERATE LOGIC (single fetch, 7‑s cool‑down) ---------- */
-let lastFetchTime = 0;        // ms
+// AUTO-GENERATE, API STUFF
+let lastFetchTime = 0;
 
 async function fetchQuestion(row){
   lastFetchTime = Date.now();
@@ -212,6 +209,7 @@ async function fetchQuestion(row){
 function autoGenerate(row, btn){
   if(btn.disabled) return;
 
+// 7000ms cooldown between requests because i keep getting 429 errors
   const wait = Math.max(0, 7000 - (Date.now() - lastFetchTime));
   const original = btn.textContent;
   btn.disabled = true;
@@ -224,7 +222,7 @@ function autoGenerate(row, btn){
   }, wait);
 }
 
-/* initialise existing rows */
+//init existing rows
 document.querySelectorAll('.q-row').forEach(adjustRow);
 </script>
 </body>

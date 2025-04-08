@@ -116,14 +116,14 @@ app.get("/game/edit/:id", routes.requireLogin, routes.editGameForm);
 app.post("/game/update/:id", routes.requireLogin, routes.updateGame);
 app.post("/game/delete/:id", routes.requireLogin, routes.deleteGame);
 
-// play mode
+// PLAY
 app.get("/play/:id", routes.requireLogin, routes.playGame);
 app.post("/play/:id/result", routes.requireLogin, routes.recordResult);
 
 app.listen(PORT, (err) => {
   console.clear();
   if (err) {
-    console.log("\x1b[31m%s\x1b[0m", err); // Red for errors
+    console.log("\x1b[31m%s\x1b[0m", err);
   } else {
     console.log(
       "\x1b[36m%s\x1b[0m",
