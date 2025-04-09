@@ -41,7 +41,7 @@ exports.authenticate = function (request, response, next) {
     console.log("User: ", username);
     console.log("Password: ", password);
 
-    /*  look‑up the user once and remember the role  */
+    // look‑up the user once and remember the role
     db.get(
       "SELECT userid, password, role FROM users WHERE userid = ?",
       [username],
@@ -53,7 +53,7 @@ exports.authenticate = function (request, response, next) {
           console.log("No authorization found, send 401.");
           response.end();
         } else {
-          /* stash the user object so later routes know who is calling */
+          // stash the user object so later routes know whos calling
           request.user = { userid: row.userid, role: row.role };
           next();
         }
@@ -286,7 +286,7 @@ exports.updateGame = (req, res) => {
         [title, description, category_id, gameId],
         (err) => {
           if (err) return res.sendStatus(500);
-          /* replace questions */
+          // replace questions
           db.run("DELETE FROM questions WHERE game_id = ?", [gameId], () => {
             const qText = toArray(req.body.question);
             const qType = toArray(req.body.type);
@@ -361,7 +361,7 @@ exports.recordResult = (req, res) => {
     [uid, gid, score],
     function (err) {
       if (err) return res.json({ status: "error" });
-      /* fetch top‑5 leaderboard for this game */
+      // fetch top‑5 leaderboard for this game
       db.all(
         "SELECT user_id AS user, score FROM results WHERE game_id=? ORDER BY score DESC LIMIT 5",
         [gid],
