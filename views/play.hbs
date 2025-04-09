@@ -92,16 +92,16 @@ let correctAns="", questionCount = questions.length;
 const tracks=['/song1.mp3','/song2.mp3','/song3.mp3'];
 
 const introScreen = document.getElementById('introScreen');
-const quizScreen  = document.getElementById('quizScreen');
+const quizScreen = document.getElementById('quizScreen');
 const leaderboardScreen = document.getElementById('leaderboardScreen');
-const timerEl     = document.getElementById('timer');
-const qNumberEl   = document.getElementById('qNumber');
+const timerEl = document.getElementById('timer');
+const qNumberEl = document.getElementById('qNumber');
 const questionBox = document.getElementById('questionBox');
 
-const textBar    = document.getElementById('textBar');
+const textBar = document.getElementById('textBar');
 const textAnswer = document.getElementById('textAnswer');
-const numAnswer  = document.getElementById('numAnswer');
-const submitBtn  = document.getElementById('submitAnswer');
+const numAnswe = document.getElementById('numAnswer');
+const submitBtn = document.getElementById('submitAnswer');
 
 const btnA=document.getElementById('btnA');
 const btnB=document.getElementById('btnB');
@@ -109,20 +109,20 @@ const btnC=document.getElementById('btnC');
 const btnD=document.getElementById('btnD');
 const multiBtns=[btnA, btnB, btnC, btnD];
 
-const bgMusic     = document.getElementById('bgMusic');
-const gong        = document.getElementById('gong');
-const sndCorrect  = document.getElementById('sndCorrect');
+const bgMusic = document.getElementById('bgMusic');
+const gong = document.getElementById('gong');
+const sndCorrect= document.getElementById('sndCorrect');
 const sndIncorrect= document.getElementById('sndIncorrect');
 
-const feedbackOverlay=document.getElementById('feedbackOverlay');
-const feedbackModal  =document.getElementById('feedbackModal');
-const feedbackResult =document.getElementById('feedbackResult');
-const feedbackPoints =document.getElementById('feedbackPoints');
-const feedbackNextBtn=document.getElementById('feedbackNextBtn');
+const feedbackOverlay =document.getElementById('feedbackOverlay');
+const feedbackModal  = document.getElementById('feedbackModal');
+const feedbackResult = document.getElementById('feedbackResult');
+const feedbackPoints = document.getElementById('feedbackPoints');
+const feedbackNextBtn =document.getElementById('feedbackNextBtn');
 
-const finalScoreEl   =document.getElementById('finalScore');
-const leaderboardListEl=document.getElementById('leaderboardList');
-const backBtn        =document.getElementById('backBtn');
+const finalScoreEl   = document.getElementById('finalScore');
+const leaderboardListEl = document.getElementById('leaderboardList');
+const backBtn        = document.getElementById('backBtn');
 
 document.getElementById('startBtn').onclick=()=>{
   introScreen.style.display='none';
@@ -202,7 +202,7 @@ function loadQuestion(){
     numAnswer.style.display='block';
   }
   else {
-    // type => user must type text
+    // type
     multiBtns.forEach(b=>b.style.display='none');
     textBar.style.display='flex';
     textAnswer.style.display='block';
