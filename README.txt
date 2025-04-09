@@ -13,11 +13,11 @@ LAUNCH COMMAND:
 
 TEST INSTRUCTIONS:
     Navigate to
-    http://localhost:3000/index.html
+    http://localhost:3000/auth
     with credentials:
     user: guest1    -  pass: guestpass   (guest)
     user: admin1    -  pass: adminpass  (admin)
     (alternatively, you may create your own account)
 
-VIDEO DEMONSTRATION : 
-    https://youtu.be/MdAW1ugFseQ
+VIDEO DEMONSTRATION: 
+    https://youtu.be/vdo4A1O33tE

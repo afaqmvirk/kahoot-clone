@@ -61,22 +61,6 @@ exports.authenticate = function (request, response, next) {
     );
   }
 };
-function addHeader(request, response) {
-  // about.html
-  var title = "COMP 2406:";
-  response.writeHead(200, { "Content-Type": "text/html" });
-  response.write("<!DOCTYPE html>");
-  response.write("<html><head><title>About</title></head>" + "<body>");
-  response.write("<h1>" + title + "</h1>");
-  response.write("<hr>");
-}
-
-function addFooter(request, response) {
-  response.write("<hr>");
-  response.write("<h3>" + "Carleton University" + "</h3>");
-  response.write("<h3>" + "School of Computer Science" + "</h3>");
-  response.write("</body></html>");
-}
 
 exports.index = function (request, response) {
   // index.html
@@ -86,18 +70,6 @@ exports.index = function (request, response) {
     user: req.user,
   });
 };
-
-function parseURL(request, response) {
-  var parseQuery = true; //parseQueryStringIfTrue
-  var slashHost = true; //slashDenoteHostIfTrue
-  var urlObj = url.parse(request.url, parseQuery, slashHost);
-  console.log("path:");
-  console.log(urlObj.path);
-  console.log("query:");
-  console.log(urlObj.query);
-  //for(x in urlObj.query) console.log(x + ': ' + urlObj.query[x]);
-  return urlObj;
-}
 
 exports.gamesOverview = function (req, res) {
   db.all(
@@ -142,7 +114,7 @@ exports.gameDetails = function (req, res) {
           res.render("gameDetails", {
             title: game.title,
             game: game,
-            questions: questions, // <─ pass questions array
+            questions: questions,
             categoryName: game.categoryName || "—",
             playCount: game.playCount || 0,
             user: req.user,
@@ -157,15 +129,13 @@ exports.gameDetails = function (req, res) {
 exports.adminPanel = function (req, res) {
   if (!req.user || req.user.role !== "admin")
     return res.status(403).send("Forbidden");
-
-  /* pull both user list and result list in parallel */
   db.all("SELECT userid, role FROM users", function (err, users) {
     db.all(
       `SELECT r.resultid,
                 r.result_time,
                 r.score,
-                u.userid          AS player,
-                g.title           AS game
+                u.userid AS player,
+                g.title AS game
          FROM   results r
                 JOIN users u ON r.user_id = u.userid
                 JOIN games g ON r.game_id = g.gameid
@@ -316,7 +286,7 @@ exports.updateGame = (req, res) => {
         [title, description, category_id, gameId],
         (err) => {
           if (err) return res.sendStatus(500);
-          /* replace questions: simplest path */
+          /* replace questions */
           db.run("DELETE FROM questions WHERE game_id = ?", [gameId], () => {
             const qText = toArray(req.body.question);
             const qType = toArray(req.body.type);
@@ -374,7 +344,7 @@ exports.playGame = (req, res) => {
       res.render("play", {
         title: game.title,
         gameId: id,
-        questions: qs, // sent to client as JSON
+        questions: qs,
         user: req.user,
       });
     });
@@ -401,7 +371,6 @@ exports.recordResult = (req, res) => {
   );
 };
 
-/* ----------  Search endpoints ---------- */
 exports.apiSearch = (req, res) => {
   const term = `%${(req.query.title || req.query.q || "").replace(
     /\s+/g,

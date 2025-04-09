@@ -1,0 +1,1 @@
+The seed.sql file is used to preopulate the database, but you shouldn't need to run it. It is helpful if you want to examine the schema of the application.

@@ -369,7 +369,7 @@ nav {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: var(--quiz-timer-bg);
+  background: var(--purple-1);
   color: #fff;
   display: flex;
   align-items: center;
@@ -382,7 +382,7 @@ nav {
   top: 1rem;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--quiz-gray);
+  background: #e0e0e0;
   color: #333;
   padding: 0.7rem 1.2rem;
   border-radius: 999px;
@@ -418,7 +418,7 @@ nav {
 #textAnswer,
 #numAnswer {
   display: none;
-  background: var(--quiz-purple);
+  background: var(--purple-2);
   color: #fff;
   border-radius: 6px;
   border: none;
@@ -510,10 +510,10 @@ nav {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 #feedbackModal.correct {
-  border: 6px solid var(--quiz-green);
+  border: 6px solid var(--green-1);
 }
 #feedbackModal.incorrect {
-  border: 6px solid var(--quiz-red);
+  border: 6px solid var(--red-1);
 }
 #feedbackResult {
   font-size: 1.5rem;
